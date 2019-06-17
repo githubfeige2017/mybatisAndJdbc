@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace 命名空间，作用就是对sql进行分类化管理,理解为sql隔离 注意：使用mapper代理方法开发，
+namespace有特殊重要的作用 
+	在mapper.xml中namespace等于mapper接口地址 -->
+
+
+<mapper namespace="com.mapper.ProductMapper">
+	<!-- 在映射文件中配置很多sql语句 -->
+	<!--需求:通过id查询用户表的记录 -->
+	<!-- 通过select执行数据库查询 id:标识映射文件中的sql，称为statement的id 将sql语句封装到mappedStatement对象中，所以将id称为statement的id 
+		parameterType:指定输入参数的类型 #{}标示一个占位符, #{value}其中value表示接收输入参数的名称，如果输入参数是简单类型，那么#{}中的值可以任意。 
+		resultType：指定sql输出结果的映射的java对象类型，select指定resultType表示将单条记录映射成java对象 -->
+	<!-- 根据id查询产品信息 -->
+
+
+	<select id="findpRoductById" parameterType="int"
+		resultType="com.bean.Product">
+		SELECT * FROM mmall_product WHERE id=#{value}
+	</select>
+
+	<!-- 根据品类名查询产品信息 -->
+	<select id="findProductsByName" parameterType="String"
+		resultType="com.bean.Product">
+		SELECT t.* from mmall_category c
+		,mmall_product t where
+		c.id=t.category_id and c.name=#{name}
+	</select>
+
+	<select id="findProductsById" parameterType="int"
+		resultType="com.pojo.ProductPojo">
+		SELECT c.name categoryName,t.* from mmall_category c
+		,mmall_product t where
+		c.id=t.category_id and c.id=#{id}
+	</select>
+
+
+	<resultMap type="com.bean.Product" id="roductResultMap">
+		<id column="id" property="id" />
+		<result column="category_id" property="category_id" />
+		<result column="name" property="name" />
+		<result column="subtitle" property="subtitle" />
+		<result column="price" property="price" />
+		<result column="stock" property="stock" />
+		<!-- 配置映射的关联的用户信息 -->
+		<!-- association：用于映射关联查询单个对象的信息 property：要将关联查询的用户信息映射到Orders中哪个属性 -->
+
+		<association property="mmall_category"
+			javaType="com.bean.Mmall_category">
+			<id column="id" property="id" />
+			<result column="name" property="name" />
+		</association>
+
+	</resultMap>
+
+	<select id="findProductsByIdresultMap"
+		resultMap="roductResultMap">
+		SELECT c.name categoryName,t.* from mmall_category c
+		,mmall_product t where
+		c.id=t.category_id
+	</select>
+
+	<resultMap type="com.pojo.MallCateGoryPojo"
+		id="MallCateGoryResultMap">
+		<id column="id" property="id" />
+		<result column="name" property="name" />
+
+		<!-- 将关联查询信息映射到一个list集合中 -->
+		<collection property="products" ofType="com.bean.Product">
+			<id column="id" property="id" />
+			<result column="name" property="name" />
+			<result column="category_id" property="category_id" />
+			<result column="subtitle" property="subtitle" />
+			<result column="name" property="name" />
+			<result column="price" property="price" />
+			<result column="stock" property="stock" />
+		</collection>
+		
+		
+		
+
+	</resultMap>
+
+	<select id="findProductBYCatName" parameterType="String"
+		resultMap="MallCateGoryResultMap">
+		SELECT c.id,c.name,t.subtitle,t.stock from mmall_category c,
+		mmall_product t where
+		c.id=t.category_id and c.name=#{value}
+	</select>
+
+
+	<!-- 添加产品 parameterType：指定输入 参数类型是pojo（包括 用户信息） #{}中指定pojo的属性名，接收到pojo对象的属性值，mybatis通过OGNL获取对象的属性值 -->
+
+	<insert id="insertProduct" parameterType="com.bean.Product">
+
+		<!-- 将插入数据的主键返回，返回到user对象中 SELECT LAST_INSERT_ID()： 得到刚insert进去记录的主键值，只适用与自增主键 
+			keyProperty：将查询到主键值设置到parameterType指定的对象的哪个属性 order： SELECT LAST_INSERT_ID()执行顺序，相对于insert语句来说它的执行顺序 
+			resultType：指定SELECT LAST_INSERT_ID()的结果类型 -->
+		<selectKey keyProperty="id" order="AFTER"
+			resultType="Integer">
+			SELECT LAST_INSERT_ID()
+		</selectKey>
+			INSERT INTO mmall_product
+			(category_id,name,subtitle,price,stock,status,create_time,update_time)
+			value(#{category_id},#{name},#{subtitle},#{price},#{stock},#{status},#{create_time,jdbcType=TIMESTAMP},
+			#{update_time,jdbcType=TIMESTAMP})
+	</insert>
+
+	<delete id="deleteProductById" parameterType="int">
+		delete from
+		mmall_product where id=#{id}
+	</delete>
+
+	<update id="updateProductById" parameterType="com.bean.Product">
+		UPDATE mmall_product SET subtitle=#{subtitle},price=#{price},
+		<if test="name!=null">
+			name=#{name},
+		</if>
+		<!-- <include refid=""></include> -->
+		update_time=#{update_time,jdbcType=TIMESTAMP}
+		WHERE id=#{id}
+	</update>
+	
+<!-- 	<sql id="" >
+	
+	
+	</sql> -->
+	
+	
+	
+
+
+
+
+
+
+
+	<!-- <sql id="queryUpdateProduct"> <if test="name!=null and name!='' "> 
+		name=#{name}, </if> </sql> -->
+
+
+
+
+</mapper>
+        
+        
+        
+        
+        
+        
